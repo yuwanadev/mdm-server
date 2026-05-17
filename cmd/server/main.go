@@ -102,7 +102,7 @@ func main() {
 	app.Use(middleware.Logger())
 	app.Use(middleware.CORS(cfg.CORSOrigins))
 
-const backendVersion = "1.0.3"
+const backendVersion = "1.0.4"
 
 	// ── Health check ──────────────────────────────────────────────
 	app.Get("/health", func(c *fiber.Ctx) error {
