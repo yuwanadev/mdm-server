@@ -51,17 +51,9 @@ func main() {
 	// ── Services ──────────────────────────────────────────────────
 	authService := service.NewAuthService(userRepo, cfg.JWTSecret)
 	screenshotService := service.NewScreenshotService("storage/screenshots")
-	deviceService := service.NewDeviceService(deviceRepo, statusRepo)
+	deviceService := service.NewDeviceService(deviceRepo, statusRepo, cfg.ServerURL)
 	commandService := service.NewCommandService(commandRepo, deviceRepo, screenshotService)
 	groupService := service.NewGroupService(groupRepo)
-
-	// ── Seed admin user ───────────────────────────────────────────
-	if cfg.AdminPass != "" {
-		if err := authService.SeedAdmin(context.Background(), cfg.AdminUser, cfg.AdminPass); err != nil {
-			log.Fatalf("Failed to seed admin: %v", err)
-		}
-		log.Printf("✓ Admin user ready (%s)", cfg.AdminUser)
-	}
 
 	// ── WebSocket Hub ─────────────────────────────────────────────
 	hub := ws.NewHub()
@@ -82,7 +74,7 @@ func main() {
 
 	// ── Fiber App ─────────────────────────────────────────────────
 	app := fiber.New(fiber.Config{
-		AppName:      "YuwanaDev MDM",
+		AppName:      cfg.ServerName,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
@@ -102,7 +94,7 @@ func main() {
 	app.Use(middleware.Logger())
 	app.Use(middleware.CORS(cfg.CORSOrigins))
 
-const backendVersion = "1.0.4"
+	const backendVersion = "1.0.4"
 
 	// ── Health check ──────────────────────────────────────────────
 	app.Get("/health", func(c *fiber.Ctx) error {
@@ -118,6 +110,8 @@ const backendVersion = "1.0.4"
 
 	// ── Auth routes (public) ──────────────────────────────────────
 	auth := app.Group("/api/auth")
+	auth.Get("/setup-status", authHandler.SetupStatus)
+	auth.Post("/setup", authHandler.Setup)
 	auth.Post("/login", authHandler.Login)
 	auth.Post("/refresh", authHandler.Refresh)
 
@@ -316,7 +310,7 @@ func handleDeviceMessage(
 
 	case ws.MsgWebRTCSignal:
 		log.Printf("[WEBRTC] ← Signal from device %s → relaying to dashboards", deviceID)
-		
+
 		// Add device_id to payload so dashboard knows which device sent the signal
 		var rawPayload map[string]interface{}
 		if err := json.Unmarshal(msg.Payload, &rawPayload); err == nil {

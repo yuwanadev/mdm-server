@@ -21,19 +21,22 @@ var (
 type DeviceService struct {
 	deviceRepo *repository.DeviceRepo
 	statusRepo *repository.StatusRepo
+	serverURL  string
 }
 
-func NewDeviceService(deviceRepo *repository.DeviceRepo, statusRepo *repository.StatusRepo) *DeviceService {
+func NewDeviceService(deviceRepo *repository.DeviceRepo, statusRepo *repository.StatusRepo, serverURL string) *DeviceService {
 	return &DeviceService{
 		deviceRepo: deviceRepo,
 		statusRepo: statusRepo,
+		serverURL:  serverURL,
 	}
 }
 
 // CreateDeviceResult contains the new device and the raw token (shown only once).
 type CreateDeviceResult struct {
-	Device   *models.Device `json:"device"`
-	RawToken string         `json:"token"` // shown once, then discarded
+	Device    *models.Device `json:"device"`
+	RawToken  string         `json:"token"` // shown once, then discarded
+	ServerUrl string         `json:"server_url"`
 }
 
 // CreateDevice registers a new device and generates a unique token.
@@ -51,8 +54,9 @@ func (s *DeviceService) CreateDevice(ctx context.Context, name string) (*CreateD
 	}
 
 	return &CreateDeviceResult{
-		Device:   device,
-		RawToken: rawToken,
+		Device:    device,
+		RawToken:  rawToken,
+		ServerUrl: s.serverURL,
 	}, nil
 }
 

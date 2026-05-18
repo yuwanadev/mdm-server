@@ -10,16 +10,20 @@ import (
 
 // Config holds all application configuration.
 type Config struct {
-	DBHost      string
-	DBPort      string
-	DBUser      string
-	DBPass      string
-	DBName      string
-	ServerPort  string
+	// Server
+	ServerName string
+	ServerURL  string
+	ServerPort string
+
+	// Database
+	DBHost string
+	DBPort string
+	DBUser string
+	DBPass string
+	DBName string
+
 	JWTSecret   string
 	CORSOrigins string
-	AdminUser   string
-	AdminPass   string
 }
 
 // Load reads configuration from environment variables.
@@ -32,16 +36,20 @@ func Load() (*Config, error) {
 	}
 
 	cfg := &Config{
-		DBHost:      getEnv("DB_HOST", "localhost"),
-		DBPort:      getEnv("DB_PORT", "5432"),
-		DBUser:      getEnv("DB_USER", "postgres"),
-		DBPass:      getEnv("DB_PASS", "postgres"),
-		DBName:      getEnv("DB_NAME", "mdm"),
-		ServerPort:  getEnv("SERVER_PORT", "8080"),
+		DBHost: getEnv("DB_HOST", "localhost"),
+		DBPort: getEnv("DB_PORT", "5432"),
+		DBUser: getEnv("DB_USER", "postgres"),
+		DBPass: getEnv("DB_PASS", "postgres"),
+		DBName: getEnv("DB_NAME", "mdm"),
+
+		// Server
+		ServerName: getEnv("SERVER_NAME", "YuwanaMDM"),
+		ServerURL:  getEnv("SERVER_URL", "http://localhost:8080"),
+		ServerPort: getEnv("SERVER_PORT", "8080"),
+
+		// Configs
 		JWTSecret:   getEnv("JWT_SECRET", ""),
 		CORSOrigins: getEnv("CORS_ORIGINS", "http://localhost:3000"),
-		AdminUser:   getEnv("ADMIN_USERNAME", "admin"),
-		AdminPass:   getEnv("ADMIN_PASSWORD", ""),
 	}
 
 	if cfg.JWTSecret == "" {

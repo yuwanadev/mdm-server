@@ -102,6 +102,15 @@ func (s *AuthService) SeedAdmin(ctx context.Context, username, password string) 
 	return err
 }
 
+// RequiresSetup returns true if there are no users in the database.
+func (s *AuthService) RequiresSetup(ctx context.Context) (bool, error) {
+	exists, err := s.userRepo.Exists(ctx)
+	if err != nil {
+		return false, err
+	}
+	return !exists, nil
+}
+
 // ValidateToken parses and validates a JWT access token.
 func (s *AuthService) ValidateToken(tokenStr string) (uuid.UUID, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
