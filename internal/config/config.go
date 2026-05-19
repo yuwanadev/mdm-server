@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -30,10 +29,7 @@ type Config struct {
 // It attempts to load a .env file if present (for local development).
 func Load() (*Config, error) {
 	// Best-effort .env load — not an error if missing (e.g. in Docker)
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load()
 
 	cfg := &Config{
 		DBHost: getEnv("DB_HOST", "localhost"),
