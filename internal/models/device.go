@@ -27,3 +27,20 @@ type DeviceWithStatus struct {
 	Device
 	Status *DeviceStatus `json:"status,omitempty"`
 }
+
+// DeviceAccount represents an account registered on the device.
+type DeviceAccount struct {
+	ID          uuid.UUID `json:"id"`
+	DeviceID    uuid.UUID `json:"device_id"`
+	AccountName string    `json:"account_name"`
+	AccountType string    `json:"account_type"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// DeviceAccountWithDevice is a joined view for the global list of accounts.
+type DeviceAccountWithDevice struct {
+	DeviceAccount
+	DeviceName  string  `json:"device_name"`
+	DeviceModel *string `json:"device_model,omitempty"`
+}

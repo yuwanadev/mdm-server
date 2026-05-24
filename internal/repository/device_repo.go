@@ -172,3 +172,75 @@ func (r *DeviceRepo) MarkOfflineInactive(ctx context.Context, timeout time.Durat
 	}
 	return res.RowsAffected(), nil
 }
+
+// UpsertDeviceAccounts saves a list of accounts for a device, returning the saved accounts.
+func (r *DeviceRepo) UpsertDeviceAccounts(ctx context.Context, deviceID uuid.UUID, accounts []models.DeviceAccount) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	// Clear existing accounts for the device
+	_, err = tx.Exec(ctx, `DELETE FROM device_accounts WHERE device_id = $1`, deviceID)
+	if err != nil {
+		return err
+	}
+
+	for _, acc := range accounts {
+		_, err = tx.Exec(ctx,
+			`INSERT INTO device_accounts (device_id, account_name, account_type) VALUES ($1, $2, $3)`,
+			deviceID, acc.AccountName, acc.AccountType)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit(ctx)
+}
+
+// GetDeviceAccounts returns all accounts for a specific device.
+func (r *DeviceRepo) GetDeviceAccounts(ctx context.Context, deviceID uuid.UUID) ([]models.DeviceAccount, error) {
+	rows, err := r.pool.Query(ctx,
+		`SELECT id, device_id, account_name, account_type, created_at, updated_at
+		 FROM device_accounts WHERE device_id = $1 ORDER BY account_name ASC`, deviceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var accounts []models.DeviceAccount
+	for rows.Next() {
+		var a models.DeviceAccount
+		if err := rows.Scan(&a.ID, &a.DeviceID, &a.AccountName, &a.AccountType, &a.CreatedAt, &a.UpdatedAt); err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, a)
+	}
+	return accounts, rows.Err()
+}
+
+// GetAllDeviceAccounts returns all accounts across all devices with device info.
+func (r *DeviceRepo) GetAllDeviceAccounts(ctx context.Context) ([]models.DeviceAccountWithDevice, error) {
+	rows, err := r.pool.Query(ctx,
+		`SELECT a.id, a.device_id, a.account_name, a.account_type, a.created_at, a.updated_at,
+		        d.device_name, d.device_model
+		 FROM device_accounts a
+		 JOIN devices d ON a.device_id = d.id
+		 ORDER BY d.device_name ASC, a.account_name ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var accounts []models.DeviceAccountWithDevice
+	for rows.Next() {
+		var a models.DeviceAccountWithDevice
+		if err := rows.Scan(&a.ID, &a.DeviceID, &a.AccountName, &a.AccountType, &a.CreatedAt, &a.UpdatedAt, &a.DeviceName, &a.DeviceModel); err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, a)
+	}
+	return accounts, rows.Err()
+}
+

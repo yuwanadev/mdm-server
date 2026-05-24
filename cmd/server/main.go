@@ -124,6 +124,10 @@ func main() {
 	api.Get("/devices/:id", deviceHandler.Get)
 	api.Put("/devices/:id", deviceHandler.Update)
 	api.Delete("/devices/:id", deviceHandler.Delete)
+	api.Get("/devices/:id/accounts", deviceHandler.GetAccounts)
+
+	// Accounts
+	api.Get("/accounts", deviceHandler.GetAllAccounts)
 
 	// Groups
 	api.Get("/groups", groupHandler.List)
@@ -285,6 +289,28 @@ func handleDeviceMessage(
 			"agent_version":   payload.AppVersion,
 		})
 		hub.BroadcastToDashboards(dashMsg)
+
+	case ws.MsgDeviceAccounts:
+		var payload ws.DeviceAccountsMessage
+		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
+			log.Printf("[MSG] Invalid device accounts from %s: %v", deviceID, err)
+			return
+		}
+
+		log.Printf("[DEVICE_ACCOUNTS] Device %s sent %d accounts", deviceID, len(payload))
+
+		var modelsAccounts []models.DeviceAccount
+		for _, acc := range payload {
+			modelsAccounts = append(modelsAccounts, models.DeviceAccount{
+				DeviceID:    deviceID,
+				AccountName: acc.Name,
+				AccountType: acc.Type,
+			})
+		}
+
+		if err := deviceRepo.UpsertDeviceAccounts(ctx, deviceID, modelsAccounts); err != nil {
+			log.Printf("[MSG] Failed to save accounts for %s: %v", deviceID, err)
+		}
 
 	case ws.MsgMirrorFrame:
 		// Device is sending a screen frame — forward raw bytes to mirroring dashboard

@@ -40,6 +40,7 @@ const (
 	MsgHeartbeat     = "STATUS_UPDATE"
 	MsgCommandResult = "COMMAND_RESULT"
 	MsgDeviceInfo    = "DEVICE_INFO"
+	MsgDeviceAccounts = "DEVICE_ACCOUNTS"
 	MsgMirrorFrame   = "MIRROR_FRAME"
 )
 
@@ -86,6 +87,15 @@ type DeviceInfoPayload struct {
 	AndroidVersion string `json:"android_version"`
 	AppVersion     string `json:"app_version"`
 }
+
+// DeviceAccountPayload is sent by the agent to report accounts.
+type DeviceAccountPayload struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+// DeviceAccountsMessage is the full payload.
+type DeviceAccountsMessage []DeviceAccountPayload
 
 // CommandPayload is sent from the server to a device.
 type CommandPayload struct {

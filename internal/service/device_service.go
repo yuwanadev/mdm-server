@@ -122,6 +122,21 @@ func (s *DeviceService) MarkOfflineInactive(ctx context.Context, timeout time.Du
 	return s.deviceRepo.MarkOfflineInactive(ctx, timeout)
 }
 
+// UpsertDeviceAccounts saves a list of accounts for a device.
+func (s *DeviceService) UpsertDeviceAccounts(ctx context.Context, deviceID uuid.UUID, accounts []models.DeviceAccount) error {
+	return s.deviceRepo.UpsertDeviceAccounts(ctx, deviceID, accounts)
+}
+
+// GetDeviceAccounts returns all accounts for a specific device.
+func (s *DeviceService) GetDeviceAccounts(ctx context.Context, deviceID uuid.UUID) ([]models.DeviceAccount, error) {
+	return s.deviceRepo.GetDeviceAccounts(ctx, deviceID)
+}
+
+// GetAllDeviceAccounts returns all accounts across all devices.
+func (s *DeviceService) GetAllDeviceAccounts(ctx context.Context) ([]models.DeviceAccountWithDevice, error) {
+	return s.deviceRepo.GetAllDeviceAccounts(ctx)
+}
+
 // generateToken creates a cryptographically random hex token.
 func generateToken(byteLen int) (string, error) {
 	b := make([]byte, byteLen)

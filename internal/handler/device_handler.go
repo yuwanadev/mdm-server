@@ -138,3 +138,38 @@ func (h *DeviceHandler) Screenshot(c *fiber.Ctx) error {
 	c.Set("Content-Type", "image/jpeg")
 	return c.SendFile(path)
 }
+
+// GetAccounts returns all accounts for a device.
+// GET /api/devices/:id/accounts
+func (h *DeviceHandler) GetAccounts(c *fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "invalid device id")
+	}
+
+	accounts, err := h.deviceService.GetDeviceAccounts(c.Context(), id)
+	if err != nil {
+		return response.InternalError(c, "failed to fetch accounts")
+	}
+
+	if accounts == nil {
+		accounts = []models.DeviceAccount{}
+	}
+
+	return response.OK(c, accounts)
+}
+
+// GetAllAccounts returns all accounts across all devices.
+// GET /api/accounts
+func (h *DeviceHandler) GetAllAccounts(c *fiber.Ctx) error {
+	accounts, err := h.deviceService.GetAllDeviceAccounts(c.Context())
+	if err != nil {
+		return response.InternalError(c, "failed to fetch accounts")
+	}
+
+	if accounts == nil {
+		accounts = []models.DeviceAccountWithDevice{}
+	}
+
+	return response.OK(c, accounts)
+}

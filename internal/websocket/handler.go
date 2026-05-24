@@ -267,7 +267,7 @@ func (h *Handler) handleDashboardTouchEvent(msg *WSMessage) {
 	log.Printf("[TOUCH] Parsed: device=%s touch=%s", deviceID, string(rawPayload.Touch))
 
 	// Forward touch event to device
-	touchMsg, _ := NewMessage(MsgTouchEvent, json.RawMessage(rawPayload.Touch))
+	touchMsg := NewMessageRaw(MsgTouchEvent, rawPayload.Touch)
 	if err := h.hub.SendToDevice(deviceID, touchMsg); err != nil {
 		log.Printf("[TOUCH] ✗ Device %s not connected — cannot forward TOUCH_EVENT", deviceID)
 	} else {
@@ -292,7 +292,7 @@ func (h *Handler) handleDashboardWebRTCSignal(msg *WSMessage) {
 	}
 
 	// Forward signal to device
-	signalMsg, _ := NewMessage(MsgWebRTCSignal, json.RawMessage(rawPayload.Signal))
+	signalMsg := NewMessageRaw(MsgWebRTCSignal, rawPayload.Signal)
 	if err := h.hub.SendToDevice(deviceID, signalMsg); err != nil {
 		log.Printf("[WEBRTC] ✗ Device %s not connected — cannot forward signal", deviceID)
 	} else {
